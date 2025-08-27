@@ -3,6 +3,7 @@ import typing
 import traceback
 import threading
 import warnings
+import uuid
 
 from .state_status import StateStatus
 from .board import Board
@@ -31,7 +32,10 @@ class State():
     _state_last_end_time: float
 
     def __init__(self, name: str = ""):
-        self._name = name if name != "" else self.__class__.__name__
+        # check that name is a string. this is also a way to check if legacy code fixed this
+        if not isinstance(name, str):
+            raise TypeError(f"Name must be a string, got {type(name)}")
+        self._name = name if name != "" else f"{self.__class__.__name__}_{uuid.uuid4().hex[:8]}"
         self._transitions = []
         self._run_thread = None
         self._interupted_event = threading.Event()
@@ -41,6 +45,18 @@ class State():
         self.flow_out = None
         self._state_last_end_time = -1
         self._state_last_start_time = -1
+
+
+    def get_name(self) -> str:
+        """Get the name of this state
+        
+        Returns
+        -------
+        str
+            Name of the state.
+        """
+        return self._name
+
 
     def check_name(self, compare: str) -> bool:
         """Check if this state has the same name as the given state

@@ -1,4 +1,7 @@
 # Changelog
+- **[Changed]** Propagated the name for `State` being optional throughout the project. Now name is the first optional parameters.
+- **[Changed]** Updated all test to make it work with name being an optional parameter
+- **[Changed]** `SetBoardState`'s key and val are no longer optional variables
 
 ## [0.4.0] - 2022-02-16
 - **[Added]** `RandomPickState` which randomly pick one of the children to be executed. All children has uniform probability being picked. 

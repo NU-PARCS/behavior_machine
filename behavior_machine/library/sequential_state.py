@@ -9,7 +9,7 @@ class SequentialState(NestedState):
     _curr_child: State
     _lock: threading.RLock
 
-    def __init__(self, name, children: typing.List[State] = None):
+    def __init__(self, children: typing.List[State] = None, name: str = ""):
         super(SequentialState, self).__init__(name)
         self._children = [] if children is None else children
         self._curr_child = None

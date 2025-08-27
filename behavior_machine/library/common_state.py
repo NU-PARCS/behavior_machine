@@ -6,13 +6,13 @@ import copy
 
 class IdleState(State):
 
-    def __init__(self, name: str):
+    def __init__(self, name: str = ""):
         """Constructor for IdleState. This state will always return StateStatus.RUNNING.
 
         Parameters
         ----------
-        name : str
-            Name of the State, useful in Debugging.
+        name : str, optional
+            Name of the state, useful in Debugging.
         """
         super().__init__(name)
 
@@ -28,16 +28,18 @@ class WaitState(State):
     _duration: float
     _check_interval: float
 
-    def __init__(self, name: str, duration: float):
+    def __init__(self, duration: float, name: str = ""):
         """Constructor for WaitState
 
         Parameters
         ----------
-        name : str
-            Name of the state, useful in Debugging
         duration : float
             Time to wait before returning from this state
+        name : str, optional
+            Name of the state, useful in Debugging
         """
+        if not isinstance(duration, (int, float)) or duration <= 0:
+            raise ValueError("Duration must be a positive number")
         self._duration = duration
         self._check_interval = 0.1
         super().__init__(name)
@@ -60,12 +62,15 @@ class SaveFlowState(State):
 
     _key: str
 
-    def __init__(self, name: str, key: str):
+    def __init__(self, key: str, name: str = ""):
         """Constructor for SaveFlowState
 
-        Args:
-            name (str): Name of the state.
-            key (str): key to store the flow_in value.
+        Parameters
+        ----------
+        key : str
+            Key to store the flow_in value.
+        name : str, optional
+            Name of the state, useful in Debugging.
         """
         self._key = key
         super().__init__(name)
@@ -83,13 +88,17 @@ class SetFlowState(State):
     """
     _val: Any
 
-    def __init__(self, name: str, val: Any, deep_copy: bool = True):
+    def __init__(self, val: Any, name: str = "", deep_copy: bool = True):
         """Constructor for SetFlowState
 
-        Args:
-            name (str): Name of state.
-            val (Any): Value to set flow_out to.
-            deep_copy (bool, optional): Whether to deep copy the given value. Defaults to True.
+        Parameters
+        ----------
+        val : Any
+            Value to set flow_out to.
+        name : str, optional
+            Name of the state, useful in Debugging.
+        deep_copy : bool, optional
+            Whether to deep copy the given value. Defaults to True.
         """
         if deep_copy:
             self._val = copy.deepcopy(val)
@@ -109,12 +118,8 @@ class SetFlowFromBoardState(State):
     """
     _key: str
 
-    def __init__(self, name: str, key: str):
+    def __init__(self, key: str, name: str = ""):
         """Constructor for SetFlowState
-
-        Args:
-            name (str): Name of the state.
-            key (str): Key to retrive value from board.
         """
         self._key = key
         super().__init__(name)
@@ -134,7 +139,7 @@ class SetBoardState(State):
     _val: typing.Any
     _key: str
 
-    def __init__(self, name: str, key: str, val: Any = None):
+    def __init__(self, key: str, val: Any,  name: str = ""):
         super().__init__(name)
         self._val = val
         self._key = key
@@ -157,7 +162,7 @@ class GetBoardState(State):
 
     _key: str
 
-    def __init__(self, name: str, key: str):
+    def __init__(self, key: str, name: str = ""):
         super().__init__(name)
         self._key = key
 

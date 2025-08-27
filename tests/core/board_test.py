@@ -10,8 +10,8 @@ class SetState(State):
     _val: str
     _key: str
 
-    def __init__(self, name, key, val):
-        super().__init__(name)
+    def __init__(self, key, val):
+        super().__init__()
         self._val = val
         self._key = key
 
@@ -24,8 +24,8 @@ class GetState(State):
 
     _key: str
 
-    def __init__(self, name, key):
-        super().__init__(name)
+    def __init__(self, key):
+        super().__init__()
         self._key = key
 
     def execute(self, board):
@@ -92,10 +92,10 @@ def test_board_exist_func():
 
 
 def test_internal_set():
-    s1 = DummyState('s1')
-    set_state = SetState('set', 'key', 'hello')
+    s1 = DummyState()
+    set_state = SetState('key', 'hello')
     s1.add_transition_on_success(set_state)
-    exe = Machine("xe", s1)
+    exe = Machine(s1)
     b = Board()
     exe.start(b, manual_exec=True)
     exe.update(b, wait=True)
@@ -103,10 +103,10 @@ def test_internal_set():
 
 
 def test_internal_get():
-    s1 = DummyState('s1')
-    get_state = GetState('set', 'key')
+    s1 = DummyState()
+    get_state = GetState('key')
     s1.add_transition_on_success(get_state)
-    exe = Machine("xe", s1)
+    exe = Machine(s1)
     b = Board()
     b.set("key", "hello_get")
     exe.start(b, manual_exec=True)
@@ -135,13 +135,13 @@ def test_object_set_get(capsys):
             assert obj['name']['first'] == 'test'
             return StateStatus.SUCCESS
 
-    s = SetState('s')
-    g = GetState('g')
-    w = WaitState('w', 1)
+    s = SetState()
+    g = GetState(name='g')
+    w = WaitState(1)
 
     s.add_transition_on_success(w)
     w.add_transition_on_success(g)
-    exe = Machine('xe', s, end_state_ids=['g'])
+    exe = Machine(s, end_state_ids=['g'])
     exe.run()
     assert exe.is_end()
     assert exe._curr_state._status == StateStatus.SUCCESS
@@ -163,7 +163,7 @@ def test_object_get_in_transition(capsys):
             return StateStatus.SUCCESS
 
     s = SetState('s')
-    w = WaitState('w', 1)
+    w = WaitState(1, 'w')
     i = IdleState('i')
     end = IdleState('end')
 
@@ -171,7 +171,7 @@ def test_object_get_in_transition(capsys):
     w.add_transition_on_success(i)
     i.add_transition(lambda state, board: board.get('obj')
                      ['name']['first'] == 'test', end)
-    exe = Machine('xe', s, end_state_ids=['end'])
+    exe = Machine(s, end_state_ids=['end'])
     exe.run()
     assert exe.is_end()
     # Idle state returns RUNNING instead of SUCCESS

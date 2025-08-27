@@ -19,7 +19,7 @@ m1.add_transition_on_success(m2)
 xe = IdleState('xe')
 m2.add_transition_on_failed(xe)
 
-ss = SequentialState("ss", children=[
+ss = SequentialState(children=[
     IdleState("i1"),
     IdleState("i2"),
     IdleState("i3"),
@@ -27,7 +27,7 @@ ss = SequentialState("ss", children=[
 ])
 m1.add_transition(lambda s,b: True, ss)
 
-pp = ParallelState("pp", children=[
+pp = ParallelState(children=[
     IdleState("i1"),
     IdleState("i2"),
 ])

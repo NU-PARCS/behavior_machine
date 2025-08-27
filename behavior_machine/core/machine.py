@@ -20,7 +20,14 @@ class Machine(NestedState):
     _debug_cb: typing.Callable[[typing.Dict[str, typing.Any]], None]
     _logger: logging.Logger
 
-    def __init__(self, name, root, end_state_ids=None, rate=1.0, debug: bool = False, debug_cb=None, logger: logging.Logger = None):
+    def __init__(self, 
+                 root: State, 
+                 name: str = "", 
+                 end_state_ids: typing.List[str] = None, 
+                 rate: float = 1.0, 
+                 debug: bool = False, 
+                 debug_cb: typing.Callable[[typing.Dict[str, typing.Any]], None] = None, 
+                 logger: logging.Logger = None):
         self._root = root
         self._curr_state = root
         self._started = False
@@ -31,7 +38,7 @@ class Machine(NestedState):
         self._logger = logger
         super(Machine, self).__init__(name)
 
-    def start(self, board: Board, flow_in: typing.Any = None, manual_exec=False) -> None:
+    def start(self, board: Board, flow_in: typing.Any = None, manual_exec: bool = False) -> None:
         # Overwrites States' start
         self._status = StateStatus.RUNNING
         # Method that is called when first enter this state.
@@ -71,13 +78,13 @@ class Machine(NestedState):
                 self.propergate_exception_information(self._curr_state)
                 return StateStatus.EXCEPTION
 
-            #TODO this part probably can be improved through better code + CPYTHON implementaions
+            # TODO this part probably can be improved through better code + CPYTHON implementaions
             # sleep for the remaining time
             passed_time = time.time() - start_time_tick
             if passed_time > self._rate:
                 # warn about slow tick rate
                 if self._logger is not None:
-                    self._logger.warn(f"Machine{self.get_debug_name()} \
+                    self._logger.warning(f"Machine{self.get_debug_name()} \
                         ticking at {passed_time} which is larger than {self._rate}")
             else:
                 time.sleep(self._rate - passed_time)
@@ -97,7 +104,7 @@ class Machine(NestedState):
                 return transition[1]
         return self
 
-    def update(self, board: Board, wait=False) -> None:
+    def update(self, board: Board, wait: bool = False) -> None:
         """ Check if the current state should transition. If wait is set to True, also wait for
         the current state to complete. Note, the wait is mostly use for testing.
 
@@ -114,7 +121,8 @@ class Machine(NestedState):
 
     def is_end(self) -> bool:
         return not self._curr_state._run_thread.is_alive() and \
-            (self._curr_state._name == self._end_state_ids or self._curr_state._name in self._end_state_ids)
+            (self._curr_state._name ==
+             self._end_state_ids or self._curr_state._name in self._end_state_ids)
 
     def run(self, board: Board = None, flow_in: typing.Any = None) -> None:
         """Run the machine starting from the initial/root state. This method should only be called

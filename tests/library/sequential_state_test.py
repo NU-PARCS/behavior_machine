@@ -4,32 +4,32 @@ from behavior_machine.library import SequentialState, PrintState, IdleState, Wai
 
 def test_sequential_state(capsys):
 
-    ps1 = PrintState("ps1", "Print1")
-    ps2 = PrintState("ps1", "Print2")
-    ps3 = PrintState("ps1", "Print3")
+    ps1 = PrintState("Print1")
+    ps2 = PrintState("Print2")
+    ps3 = PrintState("Print3")
     es = IdleState("endState")
 
-    sm = SequentialState("sm", children=[ps2, ps3])
+    sm = SequentialState(children=[ps2, ps3])
     sm.add_children(ps1)
 
     sm.add_transition_on_success(es)
-    exe = Machine("xe", sm, end_state_ids=["endState"], rate=10)
+    exe = Machine(sm, end_state_ids=["endState"], rate=10)
     exe.run()
 
     assert capsys.readouterr().out == "Print2\nPrint3\nPrint1\n"
 
 
 def test_nested_sequential_state(capsys):
-    ps1 = PrintState("ps1", "Print1")
-    ps2 = PrintState("ps2", "Print2")
-    ps3 = PrintState("ps3", "Print3")
-    ps4 = PrintState("ps4", "Print4")
+    ps1 = PrintState("Print1")
+    ps2 = PrintState("Print2")
+    ps3 = PrintState("Print3")
+    ps4 = PrintState("Print4")
     es = IdleState("endState")
 
-    sm = SequentialState("sm", children=[ps3, ps2])
-    sm2 = SequentialState("sm2", children=[ps4, sm, ps1])
+    sm = SequentialState(children=[ps3, ps2])
+    sm2 = SequentialState(children=[ps4, sm, ps1])
     sm2.add_transition_on_success(es)
-    mach = Machine("xe", sm2, end_state_ids=['endState'], rate=10)
+    mach = Machine(sm2, end_state_ids=['endState'], rate=10)
     mach.run()
 
     assert capsys.readouterr().out == "Print4\nPrint3\nPrint2\nPrint1\n"
@@ -43,17 +43,17 @@ def test_exception_in_sequential_state(capsys):
         def execute(self, board):
             raise IndexError(error_text)
 
-    ps1 = PrintState("ps1", "Print1")
-    ps2 = PrintState("ps1", "Print2")
-    ps3 = PrintState("ps1", "Print3")
+    ps1 = PrintState("Print1")
+    ps2 = PrintState("Print2")
+    ps3 = PrintState("Print3")
     rs = RaiseExceptionState("rs1")
     es = IdleState("endState")
 
-    sm = SequentialState("sm", children=[ps2, ps3, rs])
+    sm = SequentialState(children=[ps2, ps3, rs], name="sm")
     sm.add_children(ps1)
 
     sm.add_transition_on_success(es)
-    exe = Machine("xe", sm, end_state_ids=["endState"])
+    exe = Machine(sm, name="xe", end_state_ids=["endState"])
     exe.run()
 
     assert capsys.readouterr().out == "Print2\nPrint3\n"
@@ -63,11 +63,11 @@ def test_exception_in_sequential_state(capsys):
 
 def test_interruption_in_sequential_state(capsys):
 
-    ws1 = WaitState("ws1", 0.1)
-    ws2 = WaitState("ws2", 0.1)
-    ps1 = PrintState("ps1", "Print1")
+    ws1 = WaitState(0.1)
+    ws2 = WaitState(0.1)
+    ps1 = PrintState("Print1")
 
-    sm = SequentialState("sm", children=[ws1, ws2, ps1])
+    sm = SequentialState(children=[ws1, ws2, ps1])
     sm.start(None)
     sm.wait(0.15)
     sm.interrupt()
@@ -83,12 +83,12 @@ def test_interruption_in_sequential_state(capsys):
 
 
 def test_sequential_state_success(capsys):
-    ps1 = PrintState("ps1", "Print1")
-    ps2 = PrintState("ps2", "Print2")
+    ps1 = PrintState("Print1")
+    ps2 = PrintState("Print2")
     es = IdleState("es")
-    seqs = SequentialState("sm", children=[ps1, ps2])
+    seqs = SequentialState(children=[ps1, ps2])
     seqs.add_transition_on_success(es)
-    exe = Machine("m1", seqs, ['es'])
+    exe = Machine(seqs, end_state_ids=['es'])
     exe.run()
 
     assert capsys.readouterr().out == "Print1\nPrint2\n"
@@ -101,16 +101,16 @@ def test_sequential_state_success(capsys):
 
 def test_interruption_in_machines_with_sequential_state(capsys):
 
-    ws1 = WaitState("ws1", 0.2)
-    ws2 = WaitState("ws2", 0.2)
-    ps1 = PrintState("ps1", "Print1")
+    ws1 = WaitState(0.2, name="ws1")
+    ws2 = WaitState(0.2, name="ws2")
+    ps1 = PrintState("Print1")
     es = IdleState("es")
     iss = IdleState("iss")
-    sm = SequentialState("sm", children=[ws1, ws2, ps1])
+    sm = SequentialState(children=[ws1, ws2, ps1])
     sm.add_transition_on_success(es)
     sm.add_transition(lambda s, b: s._curr_child.check_name('ws2'), iss)
 
-    exe = Machine("exe", sm, ["es", "iss"], rate=100)
+    exe = Machine(sm, end_state_ids=["es", "iss"], rate=100)
     exe.run()
     assert exe._exception_raised_state_name == ""
     assert exe._internal_exception is None
@@ -131,9 +131,9 @@ def test_interruption_in_machines_with_sequential_state(capsys):
 
 
 def test_sequential_debug_info():
-    w1 = WaitState('w1', 1)
-    w2 = WaitState('w2', 1)
-    seqs = SequentialState('seqs', [w1, w2])
+    w1 = WaitState(1, name="w1")
+    w2 = WaitState(1, name="w2")
+    seqs = SequentialState(children=[w1, w2], name="seqs")
     seqs.start(None)
     seqs.wait(0.1)
     info = seqs.get_debug_info()
@@ -151,9 +151,9 @@ def test_sequential_debug_info():
 
 
 def test_repeat_sequential_state():
-    w1 = WaitState('w1', 0.3)
-    w2 = WaitState('w2', 0.3)
-    seqs = SequentialState('seqs', [w1, w2])
+    w1 = WaitState(0.3)
+    w2 = WaitState(0.3)
+    seqs = SequentialState(children=[w1, w2])
     seqs.start(None)
     seqs.wait(1)
     info = seqs.get_debug_info()
@@ -189,32 +189,32 @@ def test_sequential_state_flow(capsys):
                 return StateStatus.FAILED
 
     ps = PreState("pre")
-    ws = WaitState("ws1", 0.1)
+    ws = WaitState(0.1)
     rs = ReceiveState("rs")
     es = IdleState("es")
-    seqs = SequentialState('seqs', [rs, ws])
+    seqs = SequentialState(children=[rs, ws])
 
     ps.add_transition_on_complete(seqs)
     seqs.add_transition_on_success(seqs)
     seqs.add_transition_on_failed(es)
 
-    me = Machine("me", ps, end_state_ids=['es'])
+    me = Machine(ps, end_state_ids=['es'])
     me.start(None)
     me.wait()
     assert capsys.readouterr().out == "one\ntwo\n"
 
 
 def test_sequential_state_interrupt_before_start():
-    seq = SequentialState("seq", children=[
-        WaitState("w1", 1),
-        WaitState("w2", 2)
+    seq = SequentialState(children=[
+        WaitState(1),
+        WaitState(2)
     ])
     seq.interrupt()
 
 
 def test_sequential_state_tick_race_condition():
-    seq = SequentialState("seq", children=[
-        WaitState("w1", 1),
+    seq = SequentialState(children=[
+        WaitState(1),
     ])
     seq.start(None, None)
     assert seq.tick(None) == seq
@@ -228,18 +228,18 @@ def test_sequence_state_flow():
             self.flow_out = "Failed"
             return StateStatus.FAILED
 
-    selector = SequentialState("selector", children=[
-        SetFlowState("s1", "firstState"),
+    selector = SequentialState(children=[
+        SetFlowState("firstState"),
         FailedState("f1"),
-        SetFlowState("s2", "secondState"),
+        SetFlowState("secondState"),
     ])
     selector.start(None)
     selector.wait()
     assert selector.flow_out == "firstState"
 
-    selector = SequentialState("selector", children=[
-        SetFlowState("s1", "firstState"),
-        SetFlowState("s2", "secondState"),
+    selector = SequentialState(children=[
+        SetFlowState("firstState"),
+        SetFlowState("secondState"),
     ])
     selector.start(None)
     selector.wait()

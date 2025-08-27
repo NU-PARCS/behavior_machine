@@ -5,7 +5,7 @@ class PrintState(State):
 
     _text: str
 
-    def __init__(self, name: str, text: str):
+    def __init__(self, text: str, name: str = ""):
         """Constructor for PrintState
 
         Parameters
@@ -15,7 +15,7 @@ class PrintState(State):
         text : str
             Text to print on Screen
         """
-        super().__init__(name)
+        super().__init__(name=name)
         self._text = text
 
     def execute(self, board):

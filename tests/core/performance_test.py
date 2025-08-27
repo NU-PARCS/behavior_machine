@@ -22,7 +22,7 @@ def test_repeat_node_in_machine_fast():
     ds2.add_transition_on_success(ds3)
     ds3.add_transition_on_success(ds1)
 
-    exe = Machine('exe', ds1, rate=60)
+    exe = Machine(ds1, rate=60)
     exe.start(None)
     time.sleep(2)
     exe.interrupt()
@@ -47,7 +47,7 @@ def test_validate_transition_immediate():
     ds2.add_transition(lambda s, b: True, ds3)
     ds3.add_transition(lambda s, b: True, ds1)
 
-    exe = Machine('exe', ds1, rate=60)
+    exe = Machine(ds1, rate=60)
     exe.start(None)
     time.sleep(2)
     exe.interrupt()
@@ -68,7 +68,7 @@ def test_multiple_parallel_states():
         child_states.append(CompleteState(f"I{i}"))
 
     pp = ParallelState("parallel", child_states)
-    exe = Machine('exe', pp, end_state_ids=['parallel'], rate=100)
+    exe = Machine(pp, end_state_ids=['parallel'], rate=100)
     start_time = time.time()
     exe.start(None)
     exe.wait()

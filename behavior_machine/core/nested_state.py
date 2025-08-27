@@ -7,7 +7,7 @@ class NestedState(State):
 
     _exception_raised_state_name: str  # The name of thrown state
 
-    def __init__(self, name):
+    def __init__(self, name: str = ""):
         self._exception_raised_state_name = ""
         super(NestedState, self).__init__(name)
 

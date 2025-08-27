@@ -12,16 +12,16 @@ def test_selector_state(capsys):
             return StateStatus.FAILED
 
     fs1 = FailState("fs")
-    ps1 = PrintState("ps1", "Print1")
-    ps2 = PrintState("ps2", "Print2")
-    ps3 = PrintState("ps3", "Print3")
+    ps1 = PrintState("Print1")
+    ps2 = PrintState("Print2")
+    ps3 = PrintState("Print3")
     es = IdleState("endState")
 
-    sm = SelectorState("ss", children=[fs1, ps2, ps3])
+    sm = SelectorState(children=[fs1, ps2, ps3])
     sm.add_children(ps1)
 
     sm.add_transition_on_success(es)
-    exe = Machine("xe", sm, end_state_ids=["endState"], rate=10)
+    exe = Machine(sm, end_state_ids=["endState"], rate=10)
     exe.run()
 
     assert capsys.readouterr().out == "failed1\nPrint2\n"
@@ -38,10 +38,10 @@ def test_selector_state_all_failed():
     fs3 = FailState("f3")
     es = IdleState("endState")
 
-    sm = SelectorState("ss", children=[fs1, fs2, fs3])
+    sm = SelectorState(children=[fs1, fs2, fs3])
     sm.add_transition_on_failed(es)
 
-    exe = Machine("exe", sm, end_state_ids=['endState'], rate=10)
+    exe = Machine(sm, end_state_ids=['endState'], rate=10)
     exe.run()
 
     assert fs1.check_status(StateStatus.FAILED)
@@ -57,10 +57,10 @@ def test_selector_state_flow():
             self.flow_out = "Failed"
             return StateStatus.FAILED
 
-    selector = SelectorState("selector", children=[
+    selector = SelectorState(children=[
         FailedState("failed"),
-        SetFlowState("s1", "firstState"),
-        SetFlowState("s2", "secondState"),
+        SetFlowState( "firstState"),
+        SetFlowState("secondState"),
     ])
     selector.start(None)
     selector.wait()
@@ -74,7 +74,7 @@ def test_selector_state_flow_all_failed():
             self.flow_out = "Failed"
             return StateStatus.FAILED
 
-    selector = SelectorState("selector", children=[
+    selector = SelectorState(children=[
         FailedState("failed"),
         FailedState("failed2"),
     ])

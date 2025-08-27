@@ -7,20 +7,20 @@ from behavior_machine.library import PrintState, AtLeastOneState, SequentialStat
 
 def test_atleastone_state(capsys):
 
-    ps1 = PrintState('p1', "ps1")
-    ws1 = WaitState("w1", 0.5)
-    ps2 = PrintState('p2', "ps2")
+    ps1 = PrintState("ps1")
+    ws1 = WaitState(0.5)
+    ps2 = PrintState("ps2")
 
-    one = AtLeastOneState("one", children=[
+    one = AtLeastOneState(children=[
         ps2,
-        SequentialState("seq", children=[
+        SequentialState(children=[
             ws1,
             ps1
         ])
     ])
     es = IdleState("endState")
     one.add_transition_on_success(es)
-    exe = Machine("xe", one, end_state_ids=["endState"], rate=10)
+    exe = Machine(one, end_state_ids=["endState"], rate=10)
     exe.run()
 
     assert capsys.readouterr().out == "ps2\n"
@@ -41,9 +41,9 @@ def test_atleastone_interrupt(capsys):
             return StateStatus.SUCCESS
 
     wp = WaitAndPrint("ws")
-    one = AtLeastOneState("one", children=[
+    one = AtLeastOneState(children=[
         wp,
-        PrintState('p5', "ps5"),
+        PrintState("ps5"),
     ])
     one.start(None)
     for i in range(0, 10):
@@ -70,9 +70,9 @@ def test_at_least_one_failed(capsys):
         def execute(self, board: Board) -> StateStatus:
             return StateStatus.FAILED
 
-    wp = WaitAndPrint("ws")
-    fs = FailedState("f")
-    one = AtLeastOneState("one", children=[
+    wp = WaitAndPrint()
+    fs = FailedState()
+    one = AtLeastOneState(children=[
         wp,
         fs,
     ])
@@ -96,11 +96,11 @@ def test_checking_too_fast():
             time.sleep(1)
             return StateStatus.SUCCESS
 
-    one = AtLeastOneState("one", children=[
-        SuccessState("is1"),
-        SuccessState("is2"),
-    ])
-    exe = Machine("xe", one, end_state_ids=["one"], rate=500)
+    one = AtLeastOneState(children=[
+        SuccessState(),
+        SuccessState(),
+    ], name="one")
+    exe = Machine(one, end_state_ids=["one"], rate=500)
     exe.tick(None)
     exe.run(None)
 

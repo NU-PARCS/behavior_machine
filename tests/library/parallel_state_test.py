@@ -20,10 +20,10 @@ class FailAfterSecState(State):
 
 def test_parallel_state_individual(capsys):
 
-    ws = WaitState("ws1", 1)
-    ws2 = WaitState("ws2", 2)
+    ws = WaitState(1)
+    ws2 = WaitState(2)
 
-    pm = ParallelState('pm', [ws, ws2])
+    pm = ParallelState([ws, ws2])
 
     pm.start(None)
     # wait for one second outside
@@ -42,12 +42,12 @@ def test_parallel_state_individual(capsys):
 
 
 def test_parallel_state_in_machine(capsys):
-    ws = WaitState("ws1", 1)
-    ws2 = WaitState("ws2", 2)
+    ws = WaitState(1)
+    ws2 = WaitState(2)
     es = IdleState("es")
-    pm = ParallelState('pm', [ws, ws2])
+    pm = ParallelState([ws, ws2])
     pm.add_transition_on_success(es)
-    exe = Machine("main_machine", pm, end_state_ids=['es'], rate=10)
+    exe = Machine(pm, end_state_ids=['es'], rate=10)
     # run machine and see how it reacts
     exe.start(None)
     # wait for one second
@@ -64,14 +64,14 @@ def test_parallel_state_in_machine(capsys):
 
 def test_parallel_one_state_fails(capsys):
 
-    ws = WaitState("ws1", 5)
+    ws = WaitState(5)
     fs = FailAfterSecState(1)
     es = IdleState("es")
     fes = IdleState("fs-terminal")
-    pm = ParallelState('pm', [ws, fs])
+    pm = ParallelState([ws, fs], name='pm')
     pm.add_transition_on_success(es)
     pm.add_transition_on_failed(fes)
-    exe = Machine("main_machine", pm, end_state_ids=[
+    exe = Machine(pm, end_state_ids=[
                   'es', 'fs-terminal'], rate=10)
 
     # run machine and see how it reacts
@@ -91,8 +91,8 @@ def test_parallel_multiple_failed(capsys):
 
     fs1 = FailAfterSecState(1)
     fs15 = FailAfterSecState(1.5)
-    ws = WaitState("wait2", 2)
-    pp = ParallelState("pp", children=[fs1, fs15, ws])
+    ws = WaitState(2)
+    pp = ParallelState(children=[fs1, fs15, ws])
     pp.start(None)
     for i in range(0, 21):
         pp.tick(None)
@@ -111,14 +111,14 @@ def test_parallel_one_state_exception(capsys):
             time.sleep(1)
             return StateStatus.EXCEPTION
 
-    ws = WaitState("ws1", 5)
+    ws = WaitState(5)
     fs = ExceptionAfter1SecState("fs")
     es = IdleState("es")
     fes = IdleState("fs-terminal")
-    pm = ParallelState('pm', [ws, fs])
+    pm = ParallelState(children=[ws, fs], name="pm")
     pm.add_transition_on_success(es)
     pm.add_transition_on_failed(fes)
-    exe = Machine("main_machine", pm, end_state_ids=[
+    exe = Machine(pm, end_state_ids=[
                   'es', 'fs-terminal'], rate=10)
 
     # run machine and see how it reacts
@@ -142,14 +142,14 @@ def test_parallel_one_state_throw_exception(capsys):
             raise Exception("test exception")
             # return StateStatus.EXCEPTION
 
-    ws = WaitState("ws1", 5)
+    ws = WaitState(5)
     fs = ExceptionAfter1SecState("fs")
     es = IdleState("es")
     fes = IdleState("fs-terminal")
-    pm = ParallelState('pm', [ws, fs])
+    pm = ParallelState(children=[ws, fs], name="pm")
     pm.add_transition_on_success(es)
     pm.add_transition_on_failed(fes)
-    exe = Machine("main_machine", pm, end_state_ids=[
+    exe = Machine(pm, end_state_ids=[
                   'es', 'fs-terminal'], rate=10)
 
     # run machine and see how it reacts
@@ -173,12 +173,12 @@ def test_exception_in_parallel_state(capsys):
         def execute(self, board):
             raise IndexError(error_text)
 
-    ws = WaitState("ws1", 10)
+    ws = WaitState(10)
     re = RaiseExceptionState("re")
-    pm = ParallelState('pm', [ws, re])
+    pm = ParallelState([ws, re], name="pm")
     es = IdleState("es")
     pm.add_transition_on_success(es)
-    exe = Machine("xe", pm, end_state_ids=['es', 'onException'], rate=10)
+    exe = Machine(pm, name='xe', end_state_ids=['es', 'onException'], rate=10)
     # run machine and see how it reacted
     exe.start(None)
     exe.wait(0.5)
@@ -190,13 +190,13 @@ def test_exception_in_parallel_state(capsys):
 
 
 def test_interrupt_in_parallel_state(capsys):
-    ws = WaitState("ws1", 1)
-    ws2 = WaitState("ws2", 2)
+    ws = WaitState(1)
+    ws2 = WaitState(2)
     es = IdleState("es")
-    pm = ParallelState('pm', [ws, ws2])
+    pm = ParallelState(children=[ws, ws2])
     pm.add_transition_on_success(es)
     pm.add_transition_after_elapsed(es, 0.1)
-    exe = Machine("main_machine", pm, end_state_ids=['es'], rate=10)
+    exe = Machine(pm, end_state_ids=['es'], rate=10)
     # run machine
     exe.start(None)
     # because of the elapsed transition, the machine will immediate transition to the end state in 0.1 seconds
@@ -210,10 +210,10 @@ def test_parallel_state_performance(capsys):
 
     wait_state_list = []
     for i in range(0, 1000):
-        wait_state_list.append(WaitState(f"wait{i}", 1))
+        wait_state_list.append(WaitState(1))
 
-    pm = ParallelState('pm', wait_state_list)
-    exe = Machine("xe", pm, rate=10)
+    pm = ParallelState(wait_state_list)
+    exe = Machine(pm, rate=10)
     start_time = time.time()
     exe.start(None)
     pm.wait()
@@ -224,9 +224,9 @@ def test_parallel_state_performance(capsys):
 
 
 def test_parallel_debug_info():
-    w1 = WaitState('w1', 0.3)
-    w2 = WaitState('w2', 0.3)
-    pm = ParallelState("pm", [w1, w2])
+    w1 = WaitState(0.3, name="w1")
+    w2 = WaitState(0.3, name="w2")
+    pm = ParallelState([w1, w2], name="pm")
     pm.start(None)
     pm.wait(0.1)
     info = pm.get_debug_info()

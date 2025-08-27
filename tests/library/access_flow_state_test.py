@@ -12,7 +12,7 @@ def test_set_flow_state():
 
     test_value = 1001
 
-    sf = SetFlowState("s1", test_value)
+    sf = SetFlowState(test_value)
     id = IdleState('id')
     sf.add_transition_on_success(id)
     sf.start(None)
@@ -28,7 +28,7 @@ def test_set_flow_state_deep_copy():
         'value':100
     }
 
-    sf = SetFlowState("s1", test_value)
+    sf = SetFlowState(test_value)
     test_value['value'] = 200
     id = IdleState('id')
     sf.add_transition_on_success(id)
@@ -39,7 +39,7 @@ def test_set_flow_state_deep_copy():
     assert nxt.flow_in['value'] != test_value['value']
     assert nxt.flow_in['value'] == 100
 
-    sf2 = SetFlowState("s2", test_value, deep_copy=False)
+    sf2 = SetFlowState(test_value, deep_copy=False)
     test_value['value'] = 300
     sf2.add_transition_on_success(id)
     sf2.start(None)
@@ -52,7 +52,7 @@ def test_set_flow_state_deep_copy():
 def test_save_flow_state():
 
     test_val = "test_save_flow_23435"
-    sf = SaveFlowState("sf", "save_to_loc")
+    sf = SaveFlowState("save_to_loc")
     b = Board()
     sf.start(b,test_val)
     sf.wait()
@@ -63,7 +63,7 @@ def test_set_flow_from_board():
     test_val = "test_set_flow_from_board_23421353"
     b = Board()
     b.set("loc_to_get", test_val)
-    sfb = SetFlowFromBoardState("sfb","loc_to_get")
+    sfb = SetFlowFromBoardState("loc_to_get")
     ist = IdleState("ist")
     sfb.add_transition_on_success(ist)
     sfb.start(b)

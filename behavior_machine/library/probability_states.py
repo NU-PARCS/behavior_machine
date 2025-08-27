@@ -14,7 +14,7 @@ class RandomPickState(NestedState):
         self._children = children
         self._picked_state = None
         self._lock = threading.RLock()
-        super().__init__(name)
+        super().__init__(name=name)
 
     def execute(self, board: Board) -> StateStatus:
 

@@ -11,10 +11,10 @@ from behavior_machine.library import WaitState, IdleState, PrintState
 def test_print_state(capsys):
 
     print_text = "this is a print_text"
-    ps = PrintState("p1", print_text)
+    ps = PrintState(print_text)
     es = IdleState("endState")
     ps.add_transition_on_success(es)
-    exe = Machine("xe", ps, end_state_ids=["endState"], rate=10)
+    exe = Machine(ps, end_state_ids=["endState"], rate=10)
     exe.run()
     captured = capsys.readouterr()
     assert captured.out == print_text + '\n'
@@ -22,11 +22,11 @@ def test_print_state(capsys):
 
 def test_wait_state():
 
-    s1 = WaitState("s1", 2)
+    s1 = WaitState(2)
     s2 = IdleState("s2")
     s1.add_transition_on_success(s2)
 
-    exe = Machine("test", s1, end_state_ids=['s2'], rate=10)
+    exe = Machine(s1, end_state_ids=['s2'], rate=10)
 
     start_time = time.time()
     exe.run()
@@ -37,7 +37,7 @@ def test_wait_state():
 
 def test_wait_state_with_interrupt():
 
-    s1 = WaitState("s1", 10)
+    s1 = WaitState(10)
     start_time = time.time()
     s1.start(None)
     s1.interrupt()

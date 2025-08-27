@@ -11,7 +11,7 @@ class ParallelState(NestedState):
     _state_complete_event: threading.Event
     _child_exception: bool
 
-    def __init__(self, name, children: list = None):
+    def __init__(self, children: typing.List[State] = None, name: str = ""):
         super(ParallelState, self).__init__(name)
         self._children = [] if children is None else list(filter(None, children))
         self._state_complete_event = threading.Event()
