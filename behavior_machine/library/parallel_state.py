@@ -82,6 +82,9 @@ class ParallelState(NestedState):
 
         # we wait for when this state should be completed
         self._state_complete_event.wait()
+        self.flow_out = []
+        for child in self._children:
+            self.flow_out.append(child.flow_out)
         # we now interrupt and stop all remaining running state
         self._interrupt_running_children()
         # if we were interrupted
