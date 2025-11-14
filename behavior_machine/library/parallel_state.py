@@ -78,7 +78,7 @@ class ParallelState(NestedState):
         # start each child.
         for child in self._children:
             # because each child starts their own thread, no extra management required.
-            child.start(board)
+            child.start(board, flow_in=self.flow_in)
 
         # we wait for when this state should be completed
         self._state_complete_event.wait()

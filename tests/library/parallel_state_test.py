@@ -237,3 +237,49 @@ def test_parallel_debug_info():
     assert info['children'][1]['name'] == 'w2'
     assert info['children'][1]['status'] == StateStatus.RUNNING
     pm.interrupt()
+
+def test_parallel_state_flow():
+    class FirstState(State):
+        def execute(self, board):
+            self.flow_out = "first-done"
+            return StateStatus.SUCCESS
+
+    class PreStateOne(State):
+        def execute(self, board):
+            self.flow_out = "pre-one-done"
+            return StateStatus.SUCCESS
+        
+    class PreStateTwo(State):
+        def execute(self, board):
+            self.flow_out = "pre-two-done"
+            return StateStatus.SUCCESS
+        
+    class PreStateThree(State):
+        def execute(self, board):
+            return StateStatus.SUCCESS
+    
+    class ReceiveState(State):
+        def execute(self, board):
+            assert self.flow_in[0] == "pre-one-done"
+            assert self.flow_in[1] == "pre-two-done"
+            assert self.flow_in[2] == None
+            return StateStatus.SUCCESS
+        
+    ps = FirstState("ps")
+    ps1 = PreStateOne("ps1")
+    ps2 = PreStateTwo("ps2")
+    ps3 = PreStateThree("ps3")
+    pm = ParallelState(children=[ps1, ps2, ps3], name="pm")
+    rs = ReceiveState("rs")
+    ps.add_transition_on_success(pm)
+    pm.add_transition_on_success(rs)
+    exe = Machine(ps, end_state_ids=['rs'], rate=10)
+    exe.start(None)
+    exe.wait()
+    assert exe.check_status(StateStatus.SUCCESS)
+    assert exe._curr_state == rs
+    assert exe.flow_out == None
+    assert pm.flow_in == "first-done"
+    assert pm._children[0].flow_in == "first-done"
+    assert pm._children[1].flow_in == "first-done"
+    assert pm._children[2].flow_in == "first-done"
