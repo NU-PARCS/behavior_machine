@@ -67,7 +67,7 @@ def test_multiple_parallel_states():
     for i in range(0, num_parallel):
         child_states.append(CompleteState(f"I{i}"))
 
-    pp = ParallelState("parallel", child_states)
+    pp = ParallelState(child_states, name="parallel")
     exe = Machine(pp, end_state_ids=['parallel'], rate=100)
     start_time = time.time()
     exe.start(None)

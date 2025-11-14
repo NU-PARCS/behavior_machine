@@ -1,4 +1,5 @@
 # Changelog
+- **[Changed]** Added flow in and out for `ParallelState`. Flow in is copied and passed to all children. Flow out is a list of each child's flow out.
 - **[Changed]** Propagated the name for `State` being optional throughout the project. Now name is the first optional parameters.
 - **[Changed]** Updated all test to make it work with name being an optional parameter
 - **[Changed]** `SetBoardState`'s key and val are no longer optional variables

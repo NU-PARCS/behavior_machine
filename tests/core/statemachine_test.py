@@ -58,9 +58,9 @@ def test_transition_on_complete(capsys):
         def execute(self, board):
             print("hello")
 
-    ds1 = DummyState("d1")
-    ns = NothingState("ns")
-    ds2 = DummyState("ds2")
+    ds1 = DummyState(name="d1")
+    ns = NothingState(name="ns")
+    ds2 = DummyState(name="ds2")
 
     ds1.add_transition_on_success(ns)
     ns.add_transition_on_complete(ds2)
@@ -207,12 +207,12 @@ def test_machine_with_exception(capsys):
 
 def test_machine_with_exception_in_transition(capsys):
 
-    is1 = DummyState('d1')
-    is2 = DummyState('d2')
+    is1 = DummyState(name='d1')
+    is2 = DummyState(name='d2')
 
     is1.add_transition(lambda s, b: s.unknown(), is2)
 
-    mac = Machine(is1, ["is2"])
+    mac = Machine(is1, end_state_ids=["is2"])
     mac.run()
 
     assert mac._status == StateStatus.EXCEPTION
@@ -224,11 +224,11 @@ def test_machine_with_exception_in_transition(capsys):
 def test_machine_with_exception_in_transition_with_zombie_states(capsys):
 
     ws1 = WaitState(10)
-    is2 = DummyState('d2')
+    is2 = DummyState(name='d2')
 
     ws1.add_transition(lambda s, b: s.unknown(), is2)
 
-    mac = Machine(ws1, ["is2"])
+    mac = Machine(ws1, end_state_ids=["is2"])
     mac.run()
     assert mac._status == StateStatus.EXCEPTION
     # this is an interrupted, because exception happen at higher level
@@ -259,9 +259,9 @@ def test_debugging_machine(caplog):
 
 def test_interrupt_machine(capsys):
     s1 = WaitState(1.1)
-    s2 = DummyState('s2')
+    s2 = DummyState(name='s2')
     s1.add_transition_on_success(s2)
-    mac = Machine(s1, ["s2"], debug=True, rate=1)
+    mac = Machine(s1, end_state_ids=["s2"], debug=True, rate=1)
     mac.start(None)
     assert mac.interrupt()
 
