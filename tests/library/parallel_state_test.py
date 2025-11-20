@@ -11,7 +11,7 @@ class FailAfterSecState(State):
 
     def execute(self, board):
         start_time = time.time()
-        while ((time.time() - start_time) < self._timing):
+        while (time.time() - start_time) < self._timing:
             if self.is_interrupted():
                 return StateStatus.INTERRUPTED
             time.sleep(0.01)
@@ -47,7 +47,7 @@ def test_parallel_state_in_machine(capsys):
     es = IdleState("es")
     pm = ParallelState([ws, ws2])
     pm.add_transition_on_success(es)
-    exe = Machine(pm, end_state_ids=['es'], rate=10)
+    exe = Machine(pm, end_state_ids=["es"], rate=10)
     # run machine and see how it reacts
     exe.start(None)
     # wait for one second
@@ -68,18 +68,17 @@ def test_parallel_one_state_fails(capsys):
     fs = FailAfterSecState(1)
     es = IdleState("es")
     fes = IdleState("fs-terminal")
-    pm = ParallelState([ws, fs], name='pm')
+    pm = ParallelState([ws, fs], name="pm")
     pm.add_transition_on_success(es)
     pm.add_transition_on_failed(fes)
-    exe = Machine(pm, end_state_ids=[
-                  'es', 'fs-terminal'], rate=10)
+    exe = Machine(pm, end_state_ids=["es", "fs-terminal"], rate=10)
 
     # run machine and see how it reacts
     exe.start(None)
     # wait for one second
     assert not exe.wait(0.5)
     assert exe.check_status(StateStatus.RUNNING)
-    assert exe._curr_state.check_name('pm')
+    assert exe._curr_state.check_name("pm")
     # at this point ws should be done but ws2 is still going
     # wait another one seconds
     assert exe.wait(2)
@@ -118,15 +117,14 @@ def test_parallel_one_state_exception(capsys):
     pm = ParallelState(children=[ws, fs], name="pm")
     pm.add_transition_on_success(es)
     pm.add_transition_on_failed(fes)
-    exe = Machine(pm, end_state_ids=[
-                  'es', 'fs-terminal'], rate=10)
+    exe = Machine(pm, end_state_ids=["es", "fs-terminal"], rate=10)
 
     # run machine and see how it reacts
     exe.start(None)
     # wait for 0.5 second to see it is still running
     assert not exe.wait(0.5)
     assert exe.check_status(StateStatus.RUNNING)
-    assert exe._curr_state.check_name('pm')
+    assert exe._curr_state.check_name("pm")
     # at this point, it should throw or raise the exception
     # wait another 1.5 seconds
     assert exe.wait(1.5)
@@ -149,15 +147,14 @@ def test_parallel_one_state_throw_exception(capsys):
     pm = ParallelState(children=[ws, fs], name="pm")
     pm.add_transition_on_success(es)
     pm.add_transition_on_failed(fes)
-    exe = Machine(pm, end_state_ids=[
-                  'es', 'fs-terminal'], rate=10)
+    exe = Machine(pm, end_state_ids=["es", "fs-terminal"], rate=10)
 
     # run machine and see how it reacts
     exe.start(None)
     # wait for 0.5 second to see it is still running
     assert not exe.wait(0.5)
     assert exe.check_status(StateStatus.RUNNING)
-    assert exe._curr_state.check_name('pm')
+    assert exe._curr_state.check_name("pm")
     # at this point, it should throw or raise the exception
     # wait another 1.5 seconds
     assert exe.wait(1.5)
@@ -178,7 +175,7 @@ def test_exception_in_parallel_state(capsys):
     pm = ParallelState([ws, re], name="pm")
     es = IdleState("es")
     pm.add_transition_on_success(es)
-    exe = Machine(pm, name='xe', end_state_ids=['es', 'onException'], rate=10)
+    exe = Machine(pm, name="xe", end_state_ids=["es", "onException"], rate=10)
     # run machine and see how it reacted
     exe.start(None)
     exe.wait(0.5)
@@ -196,7 +193,7 @@ def test_interrupt_in_parallel_state(capsys):
     pm = ParallelState(children=[ws, ws2])
     pm.add_transition_on_success(es)
     pm.add_transition_after_elapsed(es, 0.1)
-    exe = Machine(pm, end_state_ids=['es'], rate=10)
+    exe = Machine(pm, end_state_ids=["es"], rate=10)
     # run machine
     exe.start(None)
     # because of the elapsed transition, the machine will immediate transition to the end state in 0.1 seconds
@@ -230,13 +227,14 @@ def test_parallel_debug_info():
     pm.start(None)
     pm.wait(0.1)
     info = pm.get_debug_info()
-    assert info['name'] == 'pm'
-    assert len(info['children']) == 2
-    assert info['children'][0]['name'] == 'w1'
-    assert info['children'][0]['status'] == StateStatus.RUNNING
-    assert info['children'][1]['name'] == 'w2'
-    assert info['children'][1]['status'] == StateStatus.RUNNING
+    assert info["name"] == "pm"
+    assert len(info["children"]) == 2
+    assert info["children"][0]["name"] == "w1"
+    assert info["children"][0]["status"] == StateStatus.RUNNING
+    assert info["children"][1]["name"] == "w2"
+    assert info["children"][1]["status"] == StateStatus.RUNNING
     pm.interrupt()
+
 
 def test_parallel_state_flow():
     class FirstState(State):
@@ -248,23 +246,23 @@ def test_parallel_state_flow():
         def execute(self, board):
             self.flow_out = "pre-one-done"
             return StateStatus.SUCCESS
-        
+
     class PreStateTwo(State):
         def execute(self, board):
             self.flow_out = "pre-two-done"
             return StateStatus.SUCCESS
-        
+
     class PreStateThree(State):
         def execute(self, board):
             return StateStatus.SUCCESS
-    
+
     class ReceiveState(State):
         def execute(self, board):
             assert self.flow_in[0] == "pre-one-done"
             assert self.flow_in[1] == "pre-two-done"
             assert self.flow_in[2] == None
             return StateStatus.SUCCESS
-        
+
     ps = FirstState("ps")
     ps1 = PreStateOne("ps1")
     ps2 = PreStateTwo("ps2")
@@ -273,7 +271,7 @@ def test_parallel_state_flow():
     rs = ReceiveState("rs")
     ps.add_transition_on_success(pm)
     pm.add_transition_on_success(rs)
-    exe = Machine(ps, end_state_ids=['rs'], rate=10)
+    exe = Machine(ps, end_state_ids=["rs"], rate=10)
     exe.start(None)
     exe.wait()
     assert exe.check_status(StateStatus.SUCCESS)
@@ -283,3 +281,52 @@ def test_parallel_state_flow():
     assert pm._children[0].flow_in == "first-done"
     assert pm._children[1].flow_in == "first-done"
     assert pm._children[2].flow_in == "first-done"
+
+
+def test_parallel_flow_deepcopy():
+    class FirstState(State):
+        def execute(self, board):
+            self.flow_out = {"msg": 10}
+            return StateStatus.SUCCESS
+
+    class PreStateOne(State):
+        def execute(self, board):
+            self.flow_in["msg"] += 2
+            self.flow_out = self.flow_in
+            return StateStatus.SUCCESS
+
+    class PreStateTwo(State):
+        def execute(self, board):
+            self.flow_in["msg"] += 5
+            self.flow_out = self.flow_in
+            return StateStatus.SUCCESS
+
+    class PreStateThree(State):
+        def execute(self, board):
+            return StateStatus.SUCCESS
+
+    class ReceiveState(State):
+        def execute(self, board):
+            assert self.flow_in[0]["msg"] == 12
+            assert self.flow_in[1]["msg"] == 15
+            assert self.flow_in[2] == None
+            return StateStatus.SUCCESS
+
+    ps = FirstState("ps")
+    ps1 = PreStateOne("ps1")
+    ps2 = PreStateTwo("ps2")
+    ps3 = PreStateThree("ps3")
+    pm = ParallelState(children=[ps1, ps2, ps3], name="pm")
+    rs = ReceiveState("rs")
+    ps.add_transition_on_success(pm)
+    pm.add_transition_on_success(rs)
+    exe = Machine(ps, end_state_ids=["rs"], rate=10)
+    exe.start(None)
+    exe.wait()
+    assert exe.check_status(StateStatus.SUCCESS)
+    assert exe._curr_state == rs
+    assert exe.flow_out == None
+    assert pm.flow_in["msg"] == 10
+    assert pm._children[0].flow_in["msg"] == 12
+    assert pm._children[1].flow_in["msg"] == 15
+    assert pm._children[2].flow_in["msg"] == 10
