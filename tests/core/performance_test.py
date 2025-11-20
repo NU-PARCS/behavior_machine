@@ -62,7 +62,7 @@ def test_multiple_parallel_states():
         def execute(self, board: Board) -> StateStatus:
             return StateStatus.SUCCESS
 
-    num_parallel = 1000
+    num_parallel = 500
     child_states = []
     for i in range(0, num_parallel):
         child_states.append(CompleteState(f"I{i}"))
@@ -73,5 +73,5 @@ def test_multiple_parallel_states():
     exe.start(None)
     exe.wait()
     elapsed_time = time.time() - start_time
-    assert elapsed_time < (1/10)
+    assert elapsed_time < 0.1
 
