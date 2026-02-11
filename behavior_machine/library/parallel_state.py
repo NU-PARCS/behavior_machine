@@ -2,6 +2,7 @@ import threading
 from ..core import StateStatus, State, NestedState, Board
 import typing
 import sys
+import copy
 
 
 class ParallelState(NestedState):
@@ -39,8 +40,11 @@ class ParallelState(NestedState):
         failed = False
         for child in self._children:
             if not child.interrupt(timeout):
-                print(f"ERROR {self.get_debug_name()} unable to complete Interrupt Action \
-                    for child {child.get_debug_name()} Zombie threads likely", file=sys.stderr)
+                print(
+                    f"ERROR {self.get_debug_name()} unable to complete Interrupt Action \
+                    for child {child.get_debug_name()} Zombie threads likely",
+                    file=sys.stderr,
+                )
                 failed = True
             if child.check_status(StateStatus.EXCEPTION):
                 # this is the child that thrown an exception
@@ -78,10 +82,13 @@ class ParallelState(NestedState):
         # start each child.
         for child in self._children:
             # because each child starts their own thread, no extra management required.
-            child.start(board)
+            child.start(board, flow_in=copy.deepcopy(self.flow_in))
 
         # we wait for when this state should be completed
         self._state_complete_event.wait()
+        self.flow_out = []
+        for child in self._children:
+            self.flow_out.append(child.flow_out)
         # we now interrupt and stop all remaining running state
         self._interrupt_running_children()
         # if we were interrupted
@@ -133,7 +140,7 @@ class ParallelState(NestedState):
     def get_debug_info(self) -> typing.Dict[str, typing.Any]:
 
         self_info = super().get_debug_info()
-        self_info['children'] = []
+        self_info["children"] = []
         for child in self._children:
-            self_info['children'].append(child.get_debug_info())
+            self_info["children"].append(child.get_debug_info())
         return self_info

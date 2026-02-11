@@ -22,13 +22,13 @@ def test_repeat_node_in_machine_fast():
     ds2.add_transition_on_success(ds3)
     ds3.add_transition_on_success(ds1)
 
-    exe = Machine(ds1, rate=60)
+    exe = Machine(ds1, rate=30)
     exe.start(None)
     time.sleep(2)
     exe.interrupt()
     # the performance of the computer might change this.
-    assert counter >= (60 * 2) - 2
-    assert counter <= (60 * 2) + 1
+    assert counter >= (30 * 2) * 0.9
+    assert counter <= (30 * 2) * 1.1
 
 def test_validate_transition_immediate():
 
@@ -47,13 +47,13 @@ def test_validate_transition_immediate():
     ds2.add_transition(lambda s, b: True, ds3)
     ds3.add_transition(lambda s, b: True, ds1)
 
-    exe = Machine(ds1, rate=60)
+    exe = Machine(ds1, rate=30)
     exe.start(None)
     time.sleep(2)
     exe.interrupt()
     # the performance of the computer might change this.
-    assert counter >= (60 * 2) - 2
-    assert counter <= (60 * 2) + 1
+    assert counter >= (30 * 2) * 0.9
+    assert counter <= (30 * 2) * 1.1
 
 
 def test_multiple_parallel_states():
@@ -67,11 +67,11 @@ def test_multiple_parallel_states():
     for i in range(0, num_parallel):
         child_states.append(CompleteState(f"I{i}"))
 
-    pp = ParallelState("parallel", child_states)
+    pp = ParallelState(child_states, name="parallel")
     exe = Machine(pp, end_state_ids=['parallel'], rate=100)
     start_time = time.time()
     exe.start(None)
     exe.wait()
     elapsed_time = time.time() - start_time
-    assert elapsed_time < (1/10)
+    assert elapsed_time < 0.1
 

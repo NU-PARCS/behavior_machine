@@ -9,8 +9,12 @@ import typing
 
 
 
-def _recursive_visualize_state(state: State, graph: pgv.AGraph, visited_list: typing.List[str], leaf_list: typing.Mapping[str, str], root: bool = False) -> str:
-
+def _recursive_visualize_state(state: State, graph: pgv.AGraph, visited_list: typing.List[str], leaf_list: typing.Mapping[str, str], global_visited: typing.Set[str] = None, global_leaf_list: typing.Mapping[str, str] = None, root: bool = False) -> str:
+    
+    if global_visited is None:
+        global_visited = set()
+    if global_leaf_list is None:
+        global_leaf_list = {}
 
     # get name of state
     state_name = state._name
@@ -24,10 +28,6 @@ def _recursive_visualize_state(state: State, graph: pgv.AGraph, visited_list: ty
     global_name = f"{parent_name}_{state_name}"
     valid_node_name = ""
 
-    # [Base Case]  ignore if we already visited it.
-    if state_name in visited_list:
-        return
-
     # Check if its a nest class or machine
     sub_graph = None
     if not hasattr(state, "_children") and not isinstance(state, Machine):
@@ -39,7 +39,7 @@ def _recursive_visualize_state(state: State, graph: pgv.AGraph, visited_list: ty
         if isinstance(state, Machine):
             state: Machine
             sub_graph.graph_attr["pencolor"] = "red"
-            valid_node_name = _recursive_visualize_state(state._root, sub_graph, [], {}, True)
+            valid_node_name = _recursive_visualize_state(state._root, sub_graph, [], {}, global_visited, global_leaf_list, True)
         else:
             if isinstance(state, SequentialState) or isinstance(state, SelectorState):
                 sub_graph.graph_attr["pencolor"] = "green"
@@ -48,18 +48,20 @@ def _recursive_visualize_state(state: State, graph: pgv.AGraph, visited_list: ty
 
                 prev_valid_name = ""
                 for children in state._children:
-                    valid_node_name = _recursive_visualize_state(children, sub_graph, [], {})
+                    valid_node_name = _recursive_visualize_state(children, sub_graph, [], {}, global_visited, global_leaf_list)
                     if prev_valid_name != "":
                         sub_graph.add_edge(prev_valid_name, valid_node_name)
                     prev_valid_name = valid_node_name
             else:
                 sub_graph.graph_attr["pencolor"] = "blue"
                 for children in state._children:
-                    valid_node_name = _recursive_visualize_state(children, sub_graph, [], {})
+                    valid_node_name = _recursive_visualize_state(children, sub_graph, [], {}, global_visited, global_leaf_list)
 
-    # registered as visited
+    # registered as visited (both locally and globally)
     visited_list.append(state_name)
+    global_visited.add(state_name)
     leaf_list[state_name] = valid_node_name
+    global_leaf_list[state_name] = valid_node_name
 
     # Create connection between each states.
     for transition in state._transitions:    
@@ -68,27 +70,28 @@ def _recursive_visualize_state(state: State, graph: pgv.AGraph, visited_list: ty
         nxt_state = transition[1]
         nxt_state_name = nxt_state._name
 
-        # run the recursive visualization function if not visted:
-        if nxt_state_name not in visited_list:
-            nxt_valid_node_name = _recursive_visualize_state(nxt_state, graph, visited_list, leaf_list)
+        # run the recursive visualization function if not visited globally:
+        if nxt_state_name not in global_visited:
+            nxt_valid_node_name = _recursive_visualize_state(nxt_state, graph, visited_list, leaf_list, global_visited, global_leaf_list)
         else:
             # we get a valid node to connect the clusters.
-            nxt_valid_node_name = leaf_list[nxt_state_name]
+            nxt_valid_node_name = global_leaf_list.get(nxt_state_name, "")
 
         # construct the name if its a cluster
         nxt_cluster_name = f"cluster_{parent_name}_{nxt_state_name}"
         # HACK: graphviz require nodes to be linked up and cannot use cluster. Their way is to just hide it
-        if graph.get_subgraph(nxt_cluster_name) is None:
-            if sub_graph is None:
-                graph.add_edge(valid_node_name, nxt_valid_node_name)
+        if nxt_valid_node_name:  # Only add edge if we have a valid node name
+            if graph.get_subgraph(nxt_cluster_name) is None:
+                if sub_graph is None:
+                    graph.add_edge(valid_node_name, nxt_valid_node_name)
+                else:
+                    graph.add_edge(valid_node_name, nxt_valid_node_name, ltail=sub_graph.name)
             else:
-                graph.add_edge(valid_node_name, nxt_valid_node_name, ltail=sub_graph.name)
-        else:
-            nxt_graph = graph.get_subgraph(nxt_cluster_name)
-            if sub_graph is None:
-                graph.add_edge(valid_node_name, nxt_valid_node_name, lhead=nxt_graph.name)
-            else:
-                graph.add_edge(valid_node_name, nxt_valid_node_name, ltail=sub_graph.name, lhead=nxt_cluster_name)
+                nxt_graph = graph.get_subgraph(nxt_cluster_name)
+                if sub_graph is None:
+                    graph.add_edge(valid_node_name, nxt_valid_node_name, lhead=nxt_graph.name)
+                else:
+                    graph.add_edge(valid_node_name, nxt_valid_node_name, ltail=sub_graph.name, lhead=nxt_cluster_name)
     
     return valid_node_name
 
