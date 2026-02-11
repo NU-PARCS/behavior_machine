@@ -4,6 +4,17 @@ Released under MIT License
 
 This is an implementation of a hierarchical state machine but with additional behavior-tree like features (Sequential, Parallal, etc). Unlike behavior trees, the execution of each state is independent of the tick (A repeative signal generated from the root). The transition of the state are determined by the machine's tick but can be set at different levels
 
+To use this repository, clone it and its dependencies to your local machine.
+```bash
+sudo apt-get install graphviz libgraphviz-dev pkg-config
+pip install pygraphviz
+git clone https://github.com/NU-PARCS/behavior_machine.git
+```
+
+To view more detailed documentation follow this [link](https://github.com/NU-PARCS/behavior_machine/wiki) to the Behavior Machine Wiki.
+
+
+<!-- 
 ## Illustrative Example:
 ```
 from behavior_machine.core import State, Machine
@@ -28,3 +39,4 @@ m2.run()
 
 ## Documentation
 You can view more detailed documentation by following this [link](https://behavior-machine.readthedocs.io/en/latest/index.html)
+-->
